@@ -123,21 +123,6 @@ class OpticalLinkBudget:
         snr = P_rx /sigma2
         snr_db = 10 * np.log10(snr)
 
-        # print("Losses and Gains:")
-        # print(f"  Transmitter Gain: {Gtx:.2f} dB")
-        # print(f"  Receiver Gain: {Grx:.2f} dB")
-        # print(f"  Optical Loss: {optics_loss:.2f} dB")
-        # print(f"  Free Space Loss: {Lfs:.2f} dB")
-        # print(f"  Atmospheric Loss: {atmos_loss:.2f} dB")
-        # print(f"  Static Pointing Loss: {L_static:.2f} dB")
-        # print(f"  Jitter Loss: {L_jitter:.2f} dB")
-        # print(f"  Scintillation Loss: {L_scint:.2f} dB")
-        # print(f"  Beam Spread Loss: {L_spread:.2f} dB")
-        # print(f"  Wavefront Loss: {L_wave:.2f} dB")
-        # print(f"  Total Losses: {total_losses:.2f} dB")
-        # print(f"  Link Margin: {total_gain + total_losses:.2f} dB")
-        # print(f"  Computed SNR: {snr_db:.2f} dB")
-
         return {
             "L": self.L,
             "Wavelength (μm)": self.wave*10**6,
