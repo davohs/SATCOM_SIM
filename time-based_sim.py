@@ -1,7 +1,9 @@
+# Import needed packages
 import numpy as np
 import matplotlib.pyplot as plt
 
-
+# Import from other files
+import link_budget
 
 #####=- Functions -=#####
 # Convert dB to linear scale
@@ -50,8 +52,6 @@ def gen_awgn(signal, snr_db):
     
     return noise
 
-
-
 #####=- Inputs -=#####
 random = False  # Switch: if False, use seed 0
 R_f = 100  # Frequency ratio: ratio between transmitter frequency and random frequency (visual)
@@ -77,8 +77,6 @@ L_c = -5  # Constant loss: all link budget losses except for (jitter-induced) sc
 # Receiver 
 p_0 = 0.1  # Outage probability [-]
 snr = 5  # Signal-to-noise ratio [dB]
-
-
 
 #####=- Calculations -=#####
 if random == True:
@@ -110,8 +108,6 @@ rx_bits = (rx_mean > threshold).astype(int)
 bit_errors = np.sum(tx_bits != rx_bits)
 BER = bit_errors / n_bits
 print("BER: " + str(BER))
-
-
 
 #####=- Plotter -=#####
 # Create figure for plots
