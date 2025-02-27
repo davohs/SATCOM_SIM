@@ -30,18 +30,31 @@ def gen_prbs(n_bits):
     return signal
         
 # Calculate time-variant loss: jitter-induced scintillation
-def calc_jit_loss(p_0, sigma_pj, theta_div, size):
-    loss_jit = 10 * np.log(p_0 ** ((4 * sigma_pj ** 2)/(theta_div ** 2)))
-    losses_jit = np.random.normal(loss_jit, sigma_pj, size)
+def calc_jit_loss(lam, theta_div, n, mean, std, la):
+    theta_x = np.random.normal(mean, std)
+    theta_y = np.random.normal(mean, std)
+    x = np.tan(theta_x) * la
+    y = np.tan(theta_y) * la
+
+    # FILTER #
+    return x_f, y_f
+
+def filter_coords(x,y):
+    return x_f, y_f
+
+def calc_jit_loss(x_f, y_f, lam, theta_div, n):
+    r = np.sqrt(x_f*2 + y_f*2)
+    w_0 = lam / (theta_div * np.pi * n)
+    z_R = np.pi * w_0**2 * n / lam
+    w = w_0 * np.sqrt(1 + (z / z_R)**2)
+    L_pj = (w_0 / w)*2 * np.exp(-2 * r2 / w*2)
+    return L_pj
+
+x, y = calc_coords(mean, std, la)
+x_f, y_f = filter_coords(x, y)
+L_pj = calc_jit_loss(x_f, y_f, lam, theta_div, n)
     
     return losses_jit
-
-# Calculate time-variant loss: scintillation (turbulence)
-def calc_scint_loss(p_0, sigma_i_sq, size):
-    loss_scint = (3.3 - 5.77 * np.sqrt(-np.log(p_0))) * sigma_i_sq ** (2/5)
-    losses_scint = np.random.normal(loss_scint, np.sqrt(sigma_i_sq), size)
-
-    return losses_scint
 
 # Generate AWGN noise for given SNR
 def gen_awgn(signal, snr_db):
@@ -90,8 +103,7 @@ t = np.linspace(0, t_end, len(tx_signal))  # Time steps
 
 # Attenuate signal: include losses
 L_pj = calc_jit_loss(p_0, sigma_pj, theta_div, len(tx_signal))  # Pointing jitter loss [dB]
-L_sc = calc_scint_loss(p_0, sigma_i_sq, len(tx_signal))  # Scintillation loss [dB]
-L_tot = db_2_lin(L_c + L_pj + L_sc)  # Total loss [-]
+L_tot = db_2_lin(L_c + L_pj)  # Total loss [-]
 tx_signal_loss =  L_tot * tx_signal
 
 # Add Gaussian noise (AWGN)
