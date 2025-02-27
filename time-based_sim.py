@@ -1,6 +1,7 @@
 # Import needed packages
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.signal as signal
 
 # Import from other files
 import link_budget
@@ -30,14 +31,25 @@ def gen_prbs(n_bits):
     return signal
         
 # Calculate time-variant loss: jitter-induced scintillation
-def calc_jit_loss(lam, theta_div, n, mean, std, la):
+def calc_jit_loss(lam, theta_div, n, mean, std, la, fs, fc):
     theta_x = np.random.normal(mean, std)
     theta_y = np.random.normal(mean, std)
     x = np.tan(theta_x) * la
     y = np.tan(theta_y) * la
+    return x, y
 
+def butt_filt(fs, fc, x, y):
     # FILTER #
-    return x_f, y_f
+    # Normalize frequency
+    Wn = fc / (fs / 2)  # Normalize by Nyquist frequency
+
+    # Design a second-order Butterworth filter
+    b, a = signal.butter(N=2, Wn=Wn, btype='low', analog=False, output='ba')
+
+    # Apply filter
+    x_f = signal.lfilter(b, a, x)
+    y_f = signal.lfilter(b, a, y)
+    return  x_f, y_f
 
 def filter_coords(x,y):
     return x_f, y_f
