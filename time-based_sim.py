@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import scipy.signal as signal
 
 # Import from other files
-import link_budget
 
 #####=- Functions -=#####
 # Convert dB to linear scale
@@ -31,12 +30,22 @@ def gen_prbs(n_bits):
     return signal
         
 # Calculate time-variant loss: jitter-induced scintillation
-def calc_jit_loss(lam, theta_div, n, mean, std, la, fs, fc):
+def calc_jit_loss(lam, theta_div, n, mean, sigma_pj, la, fs, fc, x, y):
     theta_x = np.random.normal(mean, std)
     theta_y = np.random.normal(mean, std)
     x = np.tan(theta_x) * la
     y = np.tan(theta_y) * la
-    return x, y
+
+    #Apply filter
+    x_f, y_f = butt_filt(fs, fc, x, y)
+
+    # Substitute in intensity function
+    r = np.sqrt(x_f*2 + y_f*2)
+    w_0 = lam / (theta_div * np.pi * n)
+    z_R = np.pi * w_0**2 * n / lam
+    w = w_0 * np.sqrt(1 + (z / z_R)**2)
+    L_pj = (w_0 / w)*2 * np.exp(-2 * r2 / w*2)
+    return L_pj
 
 def butt_filt(fs, fc, x, y):
     # FILTER #
@@ -50,23 +59,6 @@ def butt_filt(fs, fc, x, y):
     x_f = signal.lfilter(b, a, x)
     y_f = signal.lfilter(b, a, y)
     return  x_f, y_f
-
-def filter_coords(x,y):
-    return x_f, y_f
-
-def calc_jit_loss(x_f, y_f, lam, theta_div, n):
-    r = np.sqrt(x_f*2 + y_f*2)
-    w_0 = lam / (theta_div * np.pi * n)
-    z_R = np.pi * w_0**2 * n / lam
-    w = w_0 * np.sqrt(1 + (z / z_R)**2)
-    L_pj = (w_0 / w)*2 * np.exp(-2 * r2 / w*2)
-    return L_pj
-
-x, y = calc_coords(mean, std, la)
-x_f, y_f = filter_coords(x, y)
-L_pj = calc_jit_loss(x_f, y_f, lam, theta_div, n)
-    
-    return losses_jit
 
 # Generate AWGN noise for given SNR
 def gen_awgn(signal, snr_db):
@@ -90,6 +82,8 @@ P_l = 0.08  # Transmitter laser power [W]
 lam = 1550 * 10**(-9)  # Laser wavelength [m]
 theta_div = 10 * 10**(-6)  # Laser divergence [rad]
 sigma_pj = 2 * 10**(-6)  # Jitter RMS [rad]
+fs = 1000 
+fc = 100
 
 # Environment 
 z = 50  # Optical path length [m]
@@ -114,7 +108,7 @@ tx_signal = np.multiply(np.repeat(tx_bits, R_f), P_l)  # Transmitted signal
 t = np.linspace(0, t_end, len(tx_signal))  # Time steps
 
 # Attenuate signal: include losses
-L_pj = calc_jit_loss(p_0, sigma_pj, theta_div, len(tx_signal))  # Pointing jitter loss [dB]
+L_pj = calc_jit_loss(lam, theta_div, n, mean=0, sigma_pj, z, fs, fc, x, y)  # Pointing jitter loss [dB]
 L_tot = db_2_lin(L_c + L_pj)  # Total loss [-]
 tx_signal_loss =  L_tot * tx_signal
 
