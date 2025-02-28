@@ -190,11 +190,6 @@ link_budget = optical_link.compute_link_budget()
 for key in link_budget.keys():
     print(f"{key}: {link_budget[key]:.4f}")
 
-
-# Define parameter variation
-wavelength_values = np.linspace(0.8e-6, 1.6e-6, 50)  # Wavelength range from 0.8µm to 1.6µm
-L_values = np.linspace(10, 50, 5)  # Distance from 10m to 50m
-
 optical_link = OpticalLinkBudget(
     Tx_power=80e-3,  # Laser transmitter power (W)
     T_atmos=0.5,  # Atmospheric transmission factor
@@ -222,7 +217,7 @@ for key in link_budget.keys():
     print(f"{key}: {link_budget[key]:.4f}")
 
 # Define parameter variation
-wavelength_values = np.linspace(0.8e-6, 1.6e-6, 50)  # Wavelength range from 0.8µm to 1.6µm
+wavelength_values = np.linspace(1.5e-6, 1.6e-6, 2)  # Wavelength range from 0.8µm to 1.6µm
 L_values = np.linspace(10, 50, 5)  # Distance from 10m to 50m
 
 # Dictionary to store SNR values for each distance
