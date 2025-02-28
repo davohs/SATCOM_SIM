@@ -116,6 +116,7 @@ class OpticalLinkBudget:
         elif self.link == "down":
             L_spread = 0
             L_wave = self.wavefront_loss
+
         Rx_treshold = 10 * np.log10(self.Rx_treshold * 1000)
 
         total_gain = Gtx + Grx
@@ -128,8 +129,9 @@ class OpticalLinkBudget:
         P_tx_db = 10 * np.log10(self.Tx_power * 1000)
         link_margin = total_losses + P_tx_db - Rx_treshold
 
-        P_rx_db = P_tx_db + total_gain + total_losses
-        P_rx = 10 ** (P_rx_db / 10)
+        P_rx_db = P_tx_db + total_losses
+        P_rx = 10 ** (P_rx_db / 10) / 1000
+
         sigma2_thermal = 1.38e-23 * (273.15 + self.temp) / 50  # Thermal noise
         I_d = P_rx / (1.6e-19 * 0.99)  # Assume quantum efficiency of 0.99
         sigma2_shot = 2 * 1.6e-19 * I_d  # Shot noise
@@ -191,9 +193,9 @@ optical_link = OpticalLinkBudget(
     sigma_pj=2e-6,  # Pointing jitter (radians)
     # Modulator, L1, M1, BS1, ND, M3, ND, BS1, M2, BS2, M4, L3 
     optics_array= [0.125, 0.95, 0.96, 0.5, 1.0, 0.96, 1.0, 0.5, 0.96, 0.5, 0.96, 0.95],  # Optical efficiency (12 steps)
-    Dr=9e-3,  # 3 cm receiver aperture
+    Dr=3e-3,  # 3 cm receiver aperture
     wave=1.55e-6,  # Wavelength
-    L=20,  # Distance
+    L=50,  # Distance
     temp=20,  # Temperature in Celsius
     r=2e-5,  # Static pointing error radius, based on div
     p_out=0.01,  # Scintillation outage probability
