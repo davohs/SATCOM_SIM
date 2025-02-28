@@ -157,6 +157,12 @@ class OpticalLinkBudget:
             "Link margin [dB]": link_margin,
             "Rx treshold [dBm]": Rx_treshold,
             "SNR (dB)": snr_db,
+
+            "P_rx (W)": P_rx,
+            "P_rx (dB)": P_rx_db,
+            "Noise Total (W)": sigma2,
+            "SNR": snr,
+            "SNR (dB)": snr_db
         }
 
 # From lecture-17 slides - downlink budget:
@@ -198,7 +204,7 @@ optical_link = OpticalLinkBudget(
     optics_array= [0.125, 0.95, 0.96, 0.5, 1.0, 0.96, 1.0, 0.5, 0.96, 0.5, 0.96, 0.95],  # Optical efficiency (12 steps)
     Dr=3e-3,  # 3 cm receiver aperture
     wave=1.55e-6,  # Placeholder wavelength (will be updated)
-    L=2,  # Placeholder distance (will be updated)
+    L=50,  # Placeholder distance (will be updated)
     temp=20,  # Temperature in Celsius
     r=2e-5,  # Static pointing error radius, based on div
     p_out=0.1,  # Scintillation outage probability
@@ -215,40 +221,40 @@ link_budget = optical_link.compute_link_budget()
 for key in link_budget.keys():
     print(f"{key}: {link_budget[key]:.4f}")
 
-# # Define parameter variation
-# wavelength_values = np.linspace(0.8e-6, 1.6e-6, 50)  # Wavelength range from 0.8µm to 1.6µm
-# L_values = np.linspace(10, 50, 5)  # Distance from 10m to 50m
+# Define parameter variation
+wavelength_values = np.linspace(0.8e-6, 1.6e-6, 50)  # Wavelength range from 0.8µm to 1.6µm
+L_values = np.linspace(10, 50, 5)  # Distance from 10m to 50m
 
-# # Dictionary to store SNR values for each distance
-# snr_results = {}
+# Dictionary to store SNR values for each distance
+snr_results = {}
 
-# # Iterate over different distances
-# for L in L_values:
-#     optical_link.L = L  # Update the distance parameter
-#     snr_vals = []
+# Iterate over different distances
+for L in L_values:
+    optical_link.L = L  # Update the distance parameter
+    snr_vals = []
 
-#     # Iterate over different wavelengths
-#     for wave in wavelength_values:
-#         optical_link.wave = wave  # Update the wavelength parameter
+    # Iterate over different wavelengths
+    for wave in wavelength_values:
+        optical_link.wave = wave  # Update the wavelength parameter
         
-#         # Compute the link budget and get the SNR (dB)
-#         link_budget = optical_link.compute_link_budget()
-#         snr_vals.append(link_budget['SNR (dB)'])
+        # Compute the link budget and get the SNR (dB)
+        link_budget = optical_link.compute_link_budget()
+        snr_vals.append(link_budget['SNR (dB)'])
 
-#         # Print intermediate results for debugging
-#         print(f"Distance: {L} m, Wavelength: {wave*1e6} µm, SNR (dB): {link_budget['SNR (dB)']}, {link_budget['P_rx (W)']}, {link_budget['Noise Total (W)']}")
+        # Print intermediate results for debugging
+        print(f"Distance: {L} m, Wavelength: {wave*1e6} µm, SNR (dB): {link_budget['SNR (dB)']}, {link_budget['P_rx (W)']}, {link_budget['Noise Total (W)']}")
     
-#     # Store results for this distance
-#     snr_results[L] = snr_vals
+    # Store results for this distance
+    snr_results[L] = snr_vals
 
-# #Plot the results
-# plt.figure(figsize=(8, 6))
-# for L, snr_values in snr_results.items():
-#     plt.plot(wavelength_values * 1e6, snr_values, marker='o', linestyle='-', label=f'L = {L} m')
+#Plot the results
+plt.figure(figsize=(8, 6))
+for L, snr_values in snr_results.items():
+    plt.plot(wavelength_values * 1e6, snr_values, marker='o', linestyle='-', label=f'L = {L} m')
 
-# plt.xlabel("Wavelength (µm)")
-# plt.ylabel("SNR (dB)")
-# plt.title("SNR vs. Wavelength for Different Distances")
-# plt.legend()
-# plt.grid(True)
-# plt.show()
+plt.xlabel("Wavelength (µm)")
+plt.ylabel("SNR (dB)")
+plt.title("SNR vs. Wavelength for Different Distances")
+plt.legend()
+plt.grid(True)
+plt.show()
