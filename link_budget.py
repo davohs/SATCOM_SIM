@@ -20,8 +20,10 @@ class OpticalLinkBudget:
                  eta_rx,
                  Rx_treshold,
                  n_nom,
+                 attenuator,
                  omit=False,
-                 link="down"):
+                 link="down",
+                 ):
         self.Tx_power = Tx_power  # Laser power in W
         self.T_atmos = T_atmos  # Atmospheric transmission factor
         self.theta_div = theta_div  # Beam divergence angle (radians)
@@ -39,6 +41,7 @@ class OpticalLinkBudget:
         self.eta_rx = eta_rx # reciever efficiency
         self.Rx_treshold = Rx_treshold # Receiver treshold in watt
         self.n_nom = n_nom # nominal coupling efficiency in wafefront error
+        self.attenuator = attenuator # attenuator loss
         self.omit = omit # Omit atmospheric/turbulence induces losses
         self.link = link
 
@@ -101,7 +104,6 @@ class OpticalLinkBudget:
 
     def compute_link_budget(self):
         """Computes the full optical link budget"""
-
         Gtx = self.tx_gain
         Grx = self.rx_gain
         optics_loss = self.total_optics_loss
@@ -110,6 +112,8 @@ class OpticalLinkBudget:
         L_static = self.static_pointing_loss
         L_jitter = self.jitter_loss
         L_scint = self.scintillation_loss
+        atten_loss = self.attenuator
+
         if self.link == "up":
             L_spread = self.beam_spread_loss
             L_wave = 0
@@ -117,20 +121,20 @@ class OpticalLinkBudget:
             L_spread = 0
             L_wave = self.wavefront_loss
 
-        Rx_treshold = 10 * np.log10(self.Rx_treshold * 1000)
+        Rx_treshold_db = 10 * np.log10(self.Rx_treshold * 1000)
 
         total_gain = Gtx + Grx
         if self.omit == False:
-            total_losses = optics_loss + Lfs + atmos_loss + L_static + L_jitter + L_scint + L_spread + L_wave + total_gain
+            total_losses = optics_loss + Lfs + atmos_loss + L_static + L_jitter + L_scint + L_spread + L_wave + total_gain + atten_loss
         elif self.omit == True:
             L_scint, L_spread, L_wave = 0, 0, 0
-            total_losses = optics_loss + Lfs + atmos_loss + L_static + L_jitter + L_scint + L_spread + L_wave + total_gain
+            total_losses = optics_loss + Lfs + atmos_loss + L_static + L_jitter + L_scint + L_spread + L_wave + total_gain + atten_loss
 
         P_tx_db = 10 * np.log10(self.Tx_power * 1000)
-        link_margin = total_losses + P_tx_db - Rx_treshold
+        link_margin = total_losses + P_tx_db - Rx_treshold_db
 
         P_rx_db = P_tx_db + total_losses
-        P_rx = 10 ** (P_rx_db / 10) / 1000
+        P_rx = (10 ** (P_rx_db / 10)) / 1000
 
         sigma2_thermal = 1.38e-23 * (273.15 + self.temp) / 50  # Thermal noise
         I_d = P_rx / (1.6e-19 * 0.99)  # Assume quantum efficiency of 0.99
@@ -157,7 +161,7 @@ class OpticalLinkBudget:
 
             "Total losses [dB]": total_losses,
             "Link margin [dB]": link_margin,
-            "Rx treshold [dBm]": Rx_treshold,
+            "Rx treshold [dBm]": Rx_treshold_db,
             "SNR (dB)": snr_db,
         }
 
@@ -179,6 +183,7 @@ optical_link = OpticalLinkBudget(
     eta_rx = 1, # Reciever efficiency
     Rx_treshold=1e-6, # Receiver Treshold
     n_nom=0.8, #nominal coupling efficiency as provided for wafefront error
+    attenuator=0 #receiver attenuation in dB
 )
 
 print(f'Lecture example: within 2-4 db of example, with assumptions on efficiency and atmospheric losses for up or downlink')
@@ -204,7 +209,8 @@ optical_link = OpticalLinkBudget(
     eta_rx=0.7,  # Receiver efficiency
     Rx_treshold=1e-6,
     n_nom=0.8,
-    omit=True
+    omit=True,
+    attenuator=-10 #receiver attenuation in dB
 )
 
 print(f'Our design example: with assumptions on efficiency and atmospheric losses for up or downlink')
