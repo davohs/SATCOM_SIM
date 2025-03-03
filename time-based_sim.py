@@ -105,7 +105,7 @@ optical_link = OpticalLinkBudget(
     # Modulator, L1, M1, BS1, ND, M3, ND, BS1, M2, BS2, M4, L3 
     optics_array= [0.125, 0.95, 0.96, 0.5, 1.0, 0.96, 1.0, 0.5, 0.96, 0.5, 0.96, 0.95],  # Optical efficiency (12 steps)
     Dr=3e-3,  # 3 cm receiver aperture
-    wave=1.55e-6,  # Wavelength
+    wave=lam,  # Wavelength
     L=z,  # Distance
     temp=20,  # Temperature in Celsius
     r=2e-5,  # Static pointing error radius, based on div
