@@ -1,9 +1,13 @@
 # Import needed packages
+from os import link
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as signal
 
-###--- Funcition definitions ---###
+# Import from other files
+from link_budget import OpticalLinkBudget
+
+#####=- Functions -=#####
 # Convert dB to linear scale
 def db_2_lin(val):    
     lin_val = 10**(val / 10)
@@ -87,15 +91,42 @@ fc = 1e14                                             #dependend on system?
 z = 50  # Optical path length [m]
 n = 1   # Air refractive index [-]
 
-# Losses
-L_c = -5  # Constant loss: all link budget losses except for (jitter-induced) scintillation [dB]
-
 # Receiver 
 p_0 = 0.1  # Outage probability [-]
 snr = 5  # Signal-to-noise ratio [dB]
 
+# Link budget calculation
+optical_link = OpticalLinkBudget(
+    Tx_power=P_l,  # Laser transmitter power (W)
+    T_atmos=0.5,  # Atmospheric transmission factor
+    theta_div=theta_div,  # Beam divergence angle (radians)
+    sigma_pj=sigma_pj,  # Pointing jitter (radians)
+    # Modulator, L1, M1, BS1, ND, M3, ND, BS1, M2, BS2, M4, L3 
+    optics_array= [0.125, 0.95, 0.96, 0.5, 1.0, 0.96, 1.0, 0.5, 0.96, 0.5, 0.96, 0.95],  # Optical efficiency (12 steps)
+    Dr=3e-3,  # 3 cm receiver aperture
+    wave=1.55e-6,  # Wavelength
+    L=z,  # Distance
+    temp=20,  # Temperature in Celsius
+    r=2e-5,  # Static pointing error radius, based on div
+    p_out=p_0,  # Scintillation outage probability
+    sigma_i=sigma_i_sq,  # Scintillation index
+    r0=0.02,  # Fried parameter
+    eta_rx=0.7,  # Receiver efficiency
+    Rx_treshold=1e-6,
+    n_nom=0.8,
+    omit=True,
+    attenuator=-10 #receiver attenuation in dB
+)
 
-###--- Perform the simulation ---###
+print(f'Our design example: with assumptions on efficiency and atmospheric losses for up or downlink')
+link_budget = optical_link.compute_link_budget()
+for key in link_budget.keys():
+    print(f"{key}: {link_budget[key]:.4f}")
+
+# Losses
+L_c = (link_budget["Total Losses [dB]"] - link_budget["Pointing jitter loss [dB]"])  # Constant loss: all link budget losses except for (jitter-induced) scintillation [dB]
+
+#####=- Calculations -=#####
 if random == True:
     np.random.seed(0)  
 
