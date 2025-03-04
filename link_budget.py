@@ -165,31 +165,33 @@ class OpticalLinkBudget:
             # "SNR (dB)": snr_db,
         }
 
-# # From lecture-17 slides - downlink budget:
-# optical_link = OpticalLinkBudget(
-#     Tx_power=1,  # Laser transmitter power (W)
-#     T_atmos=0.5, # Atmospheric transmission factor
-#     theta_div=20e-6,  # Beam divergence angle (radians)
-#     sigma_pj=1e-6,  # Pointing jitter (radians)
-#     optics_array=0.302, # Optical efficiency (12 steps)
-#     Dr=0.5,  # 3 cm receiver aperture (TBR)
-#     wave=1.55e-6,  # 1.55 μm wavelength (m)
-#     L=1000e3,  # Distance Tx to Rx (meters)
-#     temp=20,  # Temperature in Celsius
-#     r=10,  # Static pointing error radius (m)
-#     p_out=1e-3,  # Scintillation outage probability
-#     sigma_i=0.45,  # Scintillation index
-#     r0=0.2,  # Fried parameter
-#     eta_rx = 1, # Reciever efficiency
-#     Rx_treshold=1e-6, # Receiver Treshold
-#     n_nom=0.8, #nominal coupling efficiency as provided for wafefront error
-#     attenuator=0 #receiver attenuation in dB
-# )
 
-# print(f'Lecture example: within 2-4 db of example, with assumptions on efficiency and atmospheric losses for up or downlink')
-# link_budget = optical_link.compute_link_budget()
-# for key in link_budget.keys():
-#     print(f"{key}: {link_budget[key]:.4f}")
+### --- Two examples, one from lecture, one for our design --- ###
+# From lecture-17 slides - downlink budget:
+optical_link = OpticalLinkBudget(
+    Tx_power=1,  # Laser transmitter power (W)
+    T_atmos=0.5, # Atmospheric transmission factor
+    theta_div=20e-6,  # Beam divergence angle (radians)
+    sigma_pj=1e-6,  # Pointing jitter (radians)
+    optics_array=0.302, # Optical efficiency (12 steps)
+    Dr=0.5,  # 3 cm receiver aperture (TBR)
+    wave=1.55e-6,  # 1.55 μm wavelength (m)
+    L=1000e3,  # Distance Tx to Rx (meters)
+    temp=20,  # Temperature in Celsius
+    r=10,  # Static pointing error radius (m)
+    p_out=1e-3,  # Scintillation outage probability
+    sigma_i=0.45,  # Scintillation index
+    r0=0.2,  # Fried parameter
+    eta_rx = 1, # Reciever efficiency
+    Rx_treshold=1e-6, # Receiver Treshold
+    n_nom=0.8, #nominal coupling efficiency as provided for wafefront error
+    attenuator=0 #receiver attenuation in dB
+)
+
+print(f'Lecture example: within 2-4 db of example, with assumptions on efficiency and atmospheric losses for up or downlink')
+link_budget = optical_link.compute_link_budget()
+for key in link_budget.keys():
+    print(f"{key}: {link_budget[key]:.4f}")
 
 optical_link = OpticalLinkBudget(
     Tx_power=80e-3,  # Laser transmitter power (W)
@@ -213,7 +215,7 @@ optical_link = OpticalLinkBudget(
     attenuator=-10 #receiver attenuation in dB
 )
 
-# print(f'Our design example: with assumptions on efficiency and atmospheric losses for up or downlink')
-# link_budget = optical_link.compute_link_budget()
-# for key in link_budget.keys():
-#     print(f"{key}: {link_budget[key]:.4f}")
+print(f'Our design example: with assumptions on efficiency and atmospheric losses for up or downlink')
+link_budget = optical_link.compute_link_budget()
+for key in link_budget.keys():
+    print(f"{key}: {link_budget[key]:.4f}")
