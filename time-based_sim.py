@@ -3,9 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as signal
 
-# Import from other files
-
-#####=- Functions -=#####
+###--- Funcition definitions ---###
 # Convert dB to linear scale
 def db_2_lin(val):    
     lin_val = 10**(val / 10)
@@ -30,22 +28,12 @@ def gen_prbs(n_bits):
     return signal
         
 # Calculate time-variant loss: jitter-induced scintillation
-def calc_jit_loss(lam, theta_div, n, mean, sigma_pj, la, fs, fc, x, y):
-    theta_x = np.random.normal(mean, std)
-    theta_y = np.random.normal(mean, std)
+def sample_xy(std, la, len):
+    theta_x = np.random.normal(0, std, len)
+    theta_y = np.random.normal(0, std, len)
     x = np.tan(theta_x) * la
     y = np.tan(theta_y) * la
-
-    #Apply filter
-    x_f, y_f = butt_filt(fs, fc, x, y)
-
-    # Substitute in intensity function
-    r = np.sqrt(x_f*2 + y_f*2)
-    w_0 = lam / (theta_div * np.pi * n)
-    z_R = np.pi * w_0**2 * n / lam
-    w = w_0 * np.sqrt(1 + (z / z_R)**2)
-    L_pj = (w_0 / w)*2 * np.exp(-2 * r2 / w*2)
-    return L_pj
+    return x, y
 
 def butt_filt(fs, fc, x, y):
     # FILTER #
@@ -60,6 +48,15 @@ def butt_filt(fs, fc, x, y):
     y_f = signal.lfilter(b, a, y)
     return  x_f, y_f
 
+def intensity_function(x_f, y_f):
+    # Substitute in intensity function
+    r = np.sqrt(x_f**2 + y_f**2)
+    w_0 = lam / (theta_div * np.pi * n)
+    z_R = np.pi * w_0**2 * n / lam
+    w = w_0 * np.sqrt(1 + (z / z_R)**2)
+    L_pj = (w_0 / w)**2 * np.exp(-2 * r**2 / w**2)
+    return L_pj
+
 # Generate AWGN noise for given SNR
 def gen_awgn(signal, snr_db):
     signal_power = np.mean(signal**2)  # Compute signal power
@@ -69,26 +66,26 @@ def gen_awgn(signal, snr_db):
     
     return noise
 
-#####=- Inputs -=#####
-random = False  # Switch: if False, use seed 0
-R_f = 100  # Frequency ratio: ratio between transmitter frequency and random frequency (visual)
+
+###--- Simulation Input ---####
+random = True  # Switch: if False, use seed 0
+R_f = 10  # Frequency ratio: ratio between transmitter frequency and random frequency (visual)
 
 # PRBS
 bitrate = 50  # Transmitted bits per second [-]
-t_end = 1  # Signal duration [s]
+t_end = 1 # Signal duration [s]
 
 # Transmitter
 P_l = 0.08  # Transmitter laser power [W]
 lam = 1550 * 10**(-9)  # Laser wavelength [m]
 theta_div = 10 * 10**(-6)  # Laser divergence [rad]
-sigma_pj = 2 * 10**(-6)  # Jitter RMS [rad]
-fs = 1000 
-fc = 100
+sigma_pj = 200 * 10**(-6)  # Jitter RMS [rad]          #Has to be within receiver range
+fs = 3e14                                               
+fc = 1e14                                             #dependend on system?
 
 # Environment 
 z = 50  # Optical path length [m]
 n = 1   # Air refractive index [-]
-sigma_i_sq = 0.2  # Scintillation index [-]
 
 # Losses
 L_c = -5  # Constant loss: all link budget losses except for (jitter-induced) scintillation [dB]
@@ -97,7 +94,8 @@ L_c = -5  # Constant loss: all link budget losses except for (jitter-induced) sc
 p_0 = 0.1  # Outage probability [-]
 snr = 5  # Signal-to-noise ratio [dB]
 
-#####=- Calculations -=#####
+
+###--- Perform the simulation ---###
 if random == True:
     np.random.seed(0)  
 
@@ -108,9 +106,13 @@ tx_signal = np.multiply(np.repeat(tx_bits, R_f), P_l)  # Transmitted signal
 t = np.linspace(0, t_end, len(tx_signal))  # Time steps
 
 # Attenuate signal: include losses
-L_pj = calc_jit_loss(lam, theta_div, n, mean=0, sigma_pj, z, fs, fc, x, y)  # Pointing jitter loss [dB]
-L_tot = db_2_lin(L_c + L_pj)  # Total loss [-]
+# Pointing jitter loss [dB]
+array = sample_xy(sigma_pj, z, len(t))
+array_f = butt_filt(fs, fc, array[0], array[1])
+L_pj = intensity_function(array_f[0], array_f[1])
+L_tot = db_2_lin(L_c) * L_pj  # Total loss [-]
 tx_signal_loss =  L_tot * tx_signal
+print(L_pj)
 
 # Add Gaussian noise (AWGN)
 awgn = gen_awgn(tx_signal_loss, snr)
@@ -127,7 +129,9 @@ bit_errors = np.sum(tx_bits != rx_bits)
 BER = bit_errors / n_bits
 print("BER: " + str(BER))
 
-#####=- Plotter -=#####
+
+
+###--- Plotter ---###
 # Create figure for plots
 plt.figure(figsize=(12, 9))
 
@@ -168,3 +172,4 @@ plt.grid(True)
 # Show all plots
 plt.tight_layout()
 plt.show()
+
