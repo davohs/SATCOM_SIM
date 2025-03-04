@@ -7,6 +7,10 @@ import scipy.signal as signal
 # Import from other files
 from link_budget import OpticalLinkBudget as lb
 
+# TODO: Fix the connection with link budget (Same input values)
+# TODO: Fix the SNR calculation
+# TODO: Fix correction noise addition
+
 #####=- Functions -=#####
 # Convert dB to linear scale
 def db_2_lin(val):    
