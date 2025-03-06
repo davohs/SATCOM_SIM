@@ -59,7 +59,7 @@ class OpticalLinkBudget:
     @property
     def free_space_loss(self):
         """Free space loss using the correct Friis equation"""
-        L_fs = (4 * np.pi * self.L / self.wave) ** 2
+        L_fs = (4 * np.pi * self.L / self.wave) ** -2
         return -np.abs(10 * np.log10(L_fs))
 
     @property
@@ -68,7 +68,8 @@ class OpticalLinkBudget:
         optics_loss = np.prod(self.optics_array)
         return -np.abs(10 * np.log10(optics_loss))
 
-    @property
+    @property #TODO: change to bessel integral solution, check Rudolphs code, combine both static pointing and dynamic loss
+#-----------
     def static_pointing_loss(self):
         """Static Pointing Loss"""
         theta_pe = self.r / self.L
@@ -80,7 +81,7 @@ class OpticalLinkBudget:
     def jitter_loss(self):
         """Jitter Loss"""
         return -np.abs(10 * np.log10(self.theta_div**2 / (self.theta_div**2 + 4 * self.sigma_pj**2) * self.p_out ** ((4 * self.sigma_pj ** 2)/(self.theta_div ** 2))))
-
+#-----------
     @property
     def beam_spread_loss(self):
         """Beam Spread Loss"""
@@ -136,12 +137,12 @@ class OpticalLinkBudget:
         P_rx_db = P_tx_db + total_losses
         P_rx = (10 ** (P_rx_db / 10)) / 1000
 
-        sigma2_thermal = 1.38e-23 * (273.15 + self.temp) / 50  # Thermal noise
-        I_d = P_rx / (1.6e-19 * 0.99)  # Assume quantum efficiency of 0.99
-        sigma2_shot = 2 * 1.6e-19 * I_d  # Shot noise
-        sigma2 = sigma2_thermal + sigma2_shot  # Total noise power
-        snr = P_rx /sigma2
-        snr_db = 10 * np.log10(snr)
+        # sigma2_thermal = 1.38e-23 * (273.15 + self.temp) / 50  # Thermal noise
+        # I_d = P_rx / (1.6e-19 * 0.99)  # Assume quantum efficiency of 0.99
+        # sigma2_shot = 2 * 1.6e-19 * I_d  # Shot noise
+        # sigma2 = sigma2_thermal + sigma2_shot  # Total noise power
+        # snr = P_rx /sigma2
+        # snr_db = 10 * np.log10(snr)
 
         return {
             "Transmit laser power [dBm]": P_tx_db,
@@ -162,7 +163,7 @@ class OpticalLinkBudget:
             "Total losses [dB]": total_losses,
             "Link margin [dB]": link_margin,
             "Rx treshold [dBm]": Rx_treshold_db,
-            "SNR (dB)": snr_db,
+            # "SNR (dB)": snr_db,
         }
 
 # From lecture-17 slides - downlink budget:
@@ -196,8 +197,8 @@ optical_link = OpticalLinkBudget(
     T_atmos=0.5,  # Atmospheric transmission factor
     theta_div=10e-6,  # Beam divergence angle (radians)
     sigma_pj=2e-6,  # Pointing jitter (radians)
-    # Modulator, L1, M1, BS1, ND, M3, ND, BS1, M2, BS2, M4, L3 
-    optics_array= [0.125, 0.95, 0.96, 0.5, 1.0, 0.96, 1.0, 0.5, 0.96, 0.5, 0.96, 0.95],  # Optical efficiency (12 steps)
+    # Modulator, L1, M1, BS1, M2, BS2, M4, L3 
+    optics_array= [0.125, 0.95, 0.96, 0.5, 0.96, 0.96, 0.95],  # Optical efficiency (7 steps)
     Dr=3e-3,  # 3 cm receiver aperture
     wave=1.55e-6,  # Wavelength
     L=50,  # Distance
@@ -217,41 +218,3 @@ print(f'Our design example: with assumptions on efficiency and atmospheric losse
 link_budget = optical_link.compute_link_budget()
 for key in link_budget.keys():
     print(f"{key}: {link_budget[key]:.4f}")
-
-# # Define parameter variation
-# wavelength_values = np.linspace(1.5e-6, 1.6e-6, 2)  # Wavelength range from 0.8µm to 1.6µm
-# L_values = np.linspace(10, 50, 5)  # Distance from 10m to 50m
-
-# # Dictionary to store SNR values for each distance
-# snr_results = {}
-
-# # Iterate over different distances
-# for L in L_values:
-#     optical_link.L = L  # Update the distance parameter
-#     snr_vals = []
-
-#     # Iterate over different wavelengths
-#     for wave in wavelength_values:
-#         optical_link.wave = wave  # Update the wavelength parameter
-        
-#         # Compute the link budget and get the SNR (dB)
-#         link_budget = optical_link.compute_link_budget()
-#         snr_vals.append(link_budget['SNR (dB)'])
-
-#         # Print intermediate results for debugging
-#         print(f"Distance: {L} m, Wavelength: {wave*1e6} µm, SNR (dB): {link_budget['SNR (dB)']}, {link_budget['P_rx (W)']}, {link_budget['Noise Total (W)']}")
-    
-#     # Store results for this distance
-#     snr_results[L] = snr_vals
-
-# #Plot the results
-# plt.figure(figsize=(8, 6))
-# for L, snr_values in snr_results.items():
-#     plt.plot(wavelength_values * 1e6, snr_values, marker='o', linestyle='-', label=f'L = {L} m')
-
-# plt.xlabel("Wavelength (µm)")
-# plt.ylabel("SNR (dB)")
-# plt.title("SNR vs. Wavelength for Different Distances")
-# plt.legend()
-# plt.grid(True)
-# plt.show()
