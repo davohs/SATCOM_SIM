@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlit.pyplot as plt
+import matplotlib.pyplot as plt
 
 x_f = 0.3
 y_f = 0.7
