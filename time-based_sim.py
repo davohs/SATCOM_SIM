@@ -6,7 +6,7 @@ import scipy.signal as signal
 
 # Import from other files
 from link_budget import OpticalLinkBudget as lb
-
+#TODO: Clean up files - create input, function and simulation file
 
 #####=- Functions -=#####
 # Convert dB to linear scale
@@ -79,7 +79,7 @@ def gen_awgn(signal, snr_db):
 
 ###--- Simulation Input ---####
 random = False  # Switch: if False, use seed 0
-R_f = 10  # Frequency ratio: ratio between transmitter frequency and random frequency (visual)
+R_f = 500  # Frequency ratio: ratio between transmitter frequency and random frequency (visual)
 
 # PRBS
 bitrate = 50  # Transmitted bits per second [-]
@@ -153,6 +153,7 @@ L_pj = intensity_function(array_f[0], array_f[1])
 L_tot = db_2_lin(L_c) * L_pj  # Total loss [-]
 tx_signal_loss = L_tot * tx_signal
 print(L_pj)
+
 
 # Add Gaussian noise (AWGN)
 awgn = gen_awgn(tx_signal_loss, snr)
