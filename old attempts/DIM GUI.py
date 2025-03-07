@@ -31,7 +31,7 @@
 
 
 ####   FreeSimpleGUI   is the new name for the pysimplegui as they closed the project and now your require a license for it.
-###    Run "pip install FreeSimpleGUI" instead
+####   Run "pip install FreeSimpleGUI" instead
 
 #Communication protocol:
 

@@ -1,6 +1,5 @@
 import FreeSimpleGUI as sg
 import serial.tools.list_ports
-import time
 
 # Initialise variables
 portSelected = False
